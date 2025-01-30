@@ -44,7 +44,7 @@ def gaussSeidel(expectedError: float, m: Matrix) -> Results:
     while True:
         previous = current
         current = approximate(current)
-        error = getError(previous, current)
+        error = getError(current, previous)
         print(f"${i}: "
             f"Previous: (${previous[0]:.4f}, ${previous[1]:.4f}, ${previous[2]:.4f})"
             f"Current: (${current[0]:.4f}, ${current[1]:.4f}, ${current[2]:.4f})" 
