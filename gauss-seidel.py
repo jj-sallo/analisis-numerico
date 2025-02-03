@@ -1,7 +1,5 @@
 from typing import Callable, List, Iterable
 from time import sleep
-from functools import reduce
-from operator import add
 from copy import deepcopy
 
 type Row = List[float]
@@ -60,11 +58,7 @@ def getError(current: Results, previous: Results) -> Error:
 
 # Returns true if all obtained error rates are within the expected error rate
 def withinError(expectedError: float, error: Error) -> bool:
-    return allTrue(lambda e: e <= expectedError, error)
-
-# Returns true if the given condition is true for all elements
-def allTrue[T](cond: Callable[[T], bool], it: Iterable[T]) -> bool: 
-    return reduce(lambda p, c: p and cond(c), it, True)
+    return all(e <= expectedError for e in  error)
 
 # Returns the given list without the i-th element
 # Non-mutating
@@ -98,11 +92,11 @@ def printMatrix(m: Matrix):
 def truncated(l: List[float]):
     *rest, last = l
     return "(" + " ".join([f"{x:.4f}," for x in rest]) + f" {last})"
-    
+
 def printEqualities(matrix: Matrix, results: Results):
     message = "Verificación:"
     for i in range(len(matrix)):
-        l = reduce(add, [x*y for (x, y) in zip(matrix[i][:-1], results)], 0)
+        l = sum([x*y for (x, y) in zip(matrix[i][:-1], results)], 0)
         r = matrix[i][-1]
         message += f"\nEq {i + 1}: {l:.4f} = {r:.4f}"
     print(message)
