@@ -1,79 +1,111 @@
-from typing import Callable, List, Tuple
+from typing import Callable, List, Iterable
 from time import sleep
+from functools import reduce
+from operator import add
+from copy import deepcopy
 
-type Row = Tuple[float, float, float, float]
-type Matrix = Tuple[Row, Row, Row]
-type Results = Tuple[float, float, float]
-type Error = Tuple[float, float, float]
+type Row = List[float]
+type Matrix = List[Row]
+type Results = List[float]
+type Error = List[float]
+
+class ParseError:
+    def __init__(self, message: str):
+        self.message = message
 
 def main():
-    print(
-        "# Método Gauss-Seidel para sistemas de ecuaciones que forman"
-        "una matriz diagonalmente dominante. #"
-        "\nPara introducir las ecuaciones, "
-        "ingrese los índices separados por espacios."
-    )
-    toRow: Callable[[List[str]], Row] = \
-        lambda x: (float(x[0]), float(x[1]), float(x[2]), float(x[3]))
-    row_1 = toRow(input("Inserte los índices de la ecuación 1: ").split(" "))
-    row_2 = toRow(input("Inserte los índices de la ecuación 2: ").split(" "))
-    row_3 = toRow(input("Inserte los índices de la ecuación 3: ").split(" "))
-    m = (row_1, row_2, row_3)
-    print("Su matriz:"
-        f"\n[ {m[0][0]} {m[0][1]} {m[0][2]} | {m[0][3]} ]"
-        f"\n[ {m[1][0]} {m[1][1]} {m[1][2]} | {m[1][3]} ]"
-        f"\n[ {m[2][0]} {m[2][1]} {m[2][2]} | {m[2][3]} ]")
-    if not diagonallyDominant(m):
-        print("La matriz ingresada no es diagonalmente dominante")
-        return
+    print("# Método Gauss-Seidel para sistemas de ecuaciones"
+          " que forman una matriz diagonalmente dominante. #")
+    matrix = parseMatrix()
+    if isinstance(matrix, ParseError): return print(matrix.message)
+    printMatrix(matrix)
     expectedError = float(input("Ingrese el error esperado: "))
-    result = gaussSeidel(expectedError, m)
-    print(f"Resultado: ({result[0]:.4f}, {result[1]:.4f}, {result[2]:.4f})"
-        f"\neq1: {m[0][0]*result[0] + m[0][1]*result[1] + m[0][2]*result[2]:.4f} = {m[0][3]}"
-        f"\neq2: {m[1][0]*result[0] + m[1][1]*result[1] + m[1][2]*result[2]:.4f} = {m[1][3]}"
-        f"\neq3: {m[2][0]*result[0] + m[2][1]*result[1] + m[2][2]*result[2]:.4f} = {m[2][3]}")
+    result = gaussSeidel(expectedError, matrix)
+    print(f"Resultado: {truncated(result)}")
+    printEqualities(matrix, result)
 
-def gaussSeidel(expectedError: float, m: Matrix) -> Results:
-    approximate = mkApproximate(m)
-    current = (0, 0, 0)
+def gaussSeidel(expectedError: float, matrix: Matrix) -> Results:
+    approximate = mkApproximate(matrix)
+    current: Results = [0] * (len(matrix[0]) - 1)
     i = 1
     while True:
         previous = current
-        current = approximate(current)
+        current = approximate(previous)
         error = getError(current, previous)
-        print(f"{i}: "
-            f"Previo: ({previous[0]:.4f}, {previous[1]:.4f}, {previous[2]:.4f}) "
-            f"Actual: ({current[0]:.4f}, {current[1]:.4f}, {current[2]:.4f}) " 
-            f"Error: ({error[0]:.4f}, {error[1]:.4f}, {error[2]:.4f})"
+        print(f"Iteración {i}:"
+            f"\n\tPrevio: {truncated(previous)}"
+            f"\n\tActual: {truncated(current)} "
+            f"\n\tError:  {truncated(error)}"
         )
-        sleep(1)
+        sleep(0.8)
         i += 1
         if withinError(expectedError, error): break
     return current
 
 def mkApproximate(m: Matrix) -> Callable[[Results], Results]:
     def approximate(x: Results):
-        x_1 = (m[0][3] - m[0][1]*x[1] - m[0][2]*x[2]) / m[0][0]
-        x_2 = (m[1][3] - m[1][0]*x_1  - m[1][2]*x[2]) / m[1][1]
-        x_3 = (m[2][3] - m[2][0]*x_1  - m[2][1]*x_2 ) / m[2][2]
-        return (x_1, x_2, x_3)
+        r: Results = deepcopy(x)
+        for i in range(len(m)):
+            *c, d = m[i]
+            min = [c[j] * r[j] for j in range(len(c)) if j != i]
+            r[i] = (d - sum(min, 0)) / m[i][i]
+        return r
     return approximate
 
-def getError(current_iter: Results, prev_iter: Results) -> Error:
-    return (
-        abs((current_iter[0] - prev_iter[0]) / current_iter[0]) * 100,
-        abs((current_iter[1] - prev_iter[1]) / current_iter[1]) * 100,
-        abs((current_iter[2] - prev_iter[2]) / current_iter[2]) * 100)
+def getError(current: Results, previous: Results) -> Error:
+    return [
+        abs((current[i] - previous[i]) / current[i]) * 100
+        for i in range(len(current))
+    ]
 
+# Returns true if all obtained error rates are within the expected error rate
 def withinError(expectedError: float, error: Error) -> bool:
-    return error[0] <= expectedError and \
-           error[1] <= expectedError and \
-           error[2] <= expectedError
+    return allTrue(lambda e: e <= expectedError, error)
 
-def diagonallyDominant(m: Matrix) -> bool:
-    return m[0][0] > m[0][1] and m[0][0] > m[0][2] and \
-           m[1][1] > m[1][0] and m[1][1] > m[1][2] and \
-           m[2][2] > m[2][0] and m[2][2] > m[2][1]
+# Returns true if the given condition is true for all elements
+def allTrue[T](cond: Callable[[T], bool], it: Iterable[T]) -> bool: 
+    return reduce(lambda p, c: p and cond(c), it, True)
+
+# Returns the given list without the i-th element
+# Non-mutating
+def without[T](l: List[T], i: int) -> List[T]:
+    return [l[j] for j in range(len(l)) if j != i]
+
+def parseMatrix() -> Matrix | ParseError:
+    length = 0
+    matrix: Matrix = []
+    i = 0
+    print(f"Inserte los índices de la ecuación dada o END para terminar.")
+    while(True):
+        strArr = input(f"eq {i + 1}: ").split(" ")
+        if strArr[0] == "END": return matrix
+        if i == 0: length = len(strArr)
+        elif len(strArr) != length: return ParseError("Se ingresaron matrices de distinta longitud")
+        # TODO: This doesn't check if the given coefficient is 0
+        try: c = [float(c_ij) for c_ij in strArr]
+        except: return ParseError("Se ingresó un valor no-numérico")
+        if c[i] < sum(without(c[:-1], i), 0): return ParseError("La matriz no es diagonalmente dominante")
+        matrix.append(c)
+        i += 1
+
+def printMatrix(m: Matrix):
+    message = "Su matriz:"
+    for row in m:
+        *rest, last = row
+        message += f"\n[ " + " ".join([f"{c} " for c in rest]) + f" | {last} ]"
+    print(message)
+
+def truncated(l: List[float]):
+    *rest, last = l
+    return "(" + " ".join([f"{x:.4f}," for x in rest]) + f" {last})"
+    
+def printEqualities(matrix: Matrix, results: Results):
+    message = "Verificación:"
+    for i in range(len(matrix)):
+        l = reduce(add, [x*y for (x, y) in zip(matrix[i][:-1], results)], 0)
+        r = matrix[i][-1]
+        message += f"\nEq {i + 1}: {l:.4f} = {r:.4f}"
+    print(message)
 
 if(__name__ == "__main__"):
     main()
