@@ -7,15 +7,11 @@ type Matrix = List[Row]
 type Results = List[float]
 type Error = List[float]
 
-class ParseError:
-    def __init__(self, message: str):
-        self.message = message
-
 def main():
     print("# Método Gauss-Seidel para sistemas de ecuaciones"
           " que forman una matriz diagonalmente dominante. #")
     matrix = parseMatrix()
-    if isinstance(matrix, ParseError): return print(matrix.message)
+    if isinstance(matrix, ValueError): return print(str(matrix))
     printMatrix(matrix)
     expectedError = float(input("Ingrese el error esperado: "))
     result = gaussSeidel(expectedError, matrix)
@@ -65,7 +61,7 @@ def withinError(expectedError: float, error: Error) -> bool:
 def without[T](l: List[T], i: int) -> List[T]:
     return [l[j] for j in range(len(l)) if j != i]
 
-def parseMatrix() -> Matrix | ParseError:
+def parseMatrix() -> Matrix | ValueError:
     length = 0
     matrix: Matrix = []
     i = 0
@@ -74,11 +70,11 @@ def parseMatrix() -> Matrix | ParseError:
         strArr = input(f"eq {i + 1}: ").split(" ")
         if strArr[0] == "END": return matrix
         if i == 0: length = len(strArr)
-        elif len(strArr) != length: return ParseError("Se ingresaron matrices de distinta longitud")
-        # TODO: This doesn't check if the given coefficient is 0
+        elif len(strArr) != length: return ValueError("Se ingresaron matrices de distinta longitud")
         try: c = [float(c_ij) for c_ij in strArr]
-        except: return ParseError("Se ingresó un valor no-numérico")
-        if c[i] < sum(without(c[:-1], i), 0): return ParseError("La matriz no es diagonalmente dominante")
+        except: return ValueError("Se ingresó un valor no-numérico")
+        if 0 in c: return ValueError("Se ingresó 0 en la ecuación")
+        if c[i] < sum(without(c[:-1], i), 0): return ValueError("La matriz no es diagonalmente dominante")
         matrix.append(c)
         i += 1
 
