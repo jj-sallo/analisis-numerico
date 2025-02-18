@@ -56,11 +56,6 @@ def getError(current: Results, previous: Results) -> Error:
 def withinError(expectedError: float, error: Error) -> bool:
     return all(e <= expectedError for e in  error)
 
-# Returns the given list without the i-th element
-# Non-mutating
-def without[T](l: List[T], i: int) -> List[T]:
-    return [l[j] for j in range(len(l)) if j != i]
-
 def parseMatrix() -> Matrix | ValueError:
     length = 0
     matrix: Matrix = []
@@ -73,8 +68,7 @@ def parseMatrix() -> Matrix | ValueError:
         elif len(strArr) != length: return ValueError("Se ingresaron matrices de distinta longitud")
         try: c = [float(c_ij) for c_ij in strArr]
         except: return ValueError("Se ingresó un valor no-numérico")
-        if 0 in c: return ValueError("Se ingresó 0 en la ecuación")
-        if c[i] < sum(without(c[:-1], i), 0): return ValueError("La matriz no es diagonalmente dominante")
+        if c[i] == 0: return ValueError("Se ingresó un 0 en la diagonal principal")
         matrix.append(c)
         i += 1
 
