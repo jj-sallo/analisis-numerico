@@ -14,7 +14,7 @@ def pfijo(x: float, e: float, fn: Callable[[float], float]):
     curr = x
     while True:
         prev = curr
-        curr = fn(x)
+        curr = fn(prev)
         print(curr, err(prev, curr))
         if err(prev, curr) <= e:
             return curr
