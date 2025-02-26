@@ -6,6 +6,8 @@ def main():
     fn = parsefn()
     if type(fn) == str: return print(f'ERROR: {fn}')
     e = float(input("% de error: "))
+    # TODO: Puede que se quiera proveer la x inicial
+    # en ese caso hay que añadir otro input
     r = pfijo(0, e, fn)
     print(r)
 
@@ -16,6 +18,8 @@ def pfijo(x: float, e: float, fn: Callable[[float], float]):
         prev = curr
         curr = fn(prev)
         print(curr, err(prev, curr))
+        # TODO: Si en algún momento e_{i+1} >= e_i
+        # el algoritmo diverge y la función no tiene punto fijo
         if err(prev, curr) <= e:
             return curr
 
