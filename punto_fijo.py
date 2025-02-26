@@ -4,7 +4,7 @@ import math
 
 def main():
     fn = parsefn()
-    if type(fn) == 'str': print(f'ERROR: {fn}')
+    if type(fn) == str: return print(f'ERROR: {fn}')
     e = float(input("% de error: "))
     r = pfijo(0, e, fn)
     print(r)
@@ -31,22 +31,20 @@ def parsefn() -> Callable[[float], float] | str:
       "\ne.g. g(x) = x**2 + 2*x + 1"
       "\n     g(x) = math.e(-x)"
     )
-    while True:
-        # la lambda encapsula el valor de x dentro de su scope
-        s = input("g_(x) = ")
-        fn = lambda x: eval(s)
-        # la función tiene que aceptar un valor flotante
-        # y retornar otro valor flotante
-        try:
-            # es posible que la función sea válida pero contenga
-            # una asíntota en uno de los valores de prueba
-            # por lo que probamos 5 distintos
-            # for i in range(5):
-                float(fn(1.0))
-                print('fn', fn)
-                return fn
-        except:
-            return "La función ingresada debe aceptar y retornar valores numericos flotantes"
+    s = input("g_(x) = ")
+    # la lambda encapsula el valor de x dentro de su scope
+    fn = lambda x: eval(s)
+    # la función tiene que aceptar un valor flotante
+    # y retornar otro valor flotante
+    def isinvalid(x: float):
+        try: float(fn(x)); return False
+        except: return True
+    # es posible que la función sea válida pero contenga
+    # una asíntota en uno de los valores de prueba
+    # por lo que probamos 5 distintos
+    if not all(isinvalid(x) for x in range(5)):
+        return fn
+    return "La función ingresada debe aceptar y retornar valores numericos flotantes"
 
 if __name__ == "__main__":
     main()
