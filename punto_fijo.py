@@ -9,14 +9,16 @@ def main():
     # TODO: Puede que se quiera proveer la x inicial
     # en ese caso hay que añadir otro input
     r = pfijo(0, e, fn)
-    print(r)
+    print("Raiz encontrada:", r)
+    print(f"f({r}) =", fn(r))
 
 def pfijo(x: float, e: float, fn: Callable[[float], float]):
     i = 0
     curr = x
     while True:
         prev = curr
-        curr = fn(prev)
+        # el + x viene del despeje f(x) + x - x = 0
+        curr = fn(prev) + prev
         print(curr, err(prev, curr))
         # TODO: Si en algún momento e_{i+1} >= e_i
         # el algoritmo diverge y la función no tiene punto fijo
@@ -28,14 +30,13 @@ def err(prev: float, curr: float) -> float:
 
 def parsefn() -> Callable[[float], float] | str:
     print(
-      "Ingrese la función g(x) que proviene"
-      "\ndel despeje x_{i+1}=g(x_i)"
+      "Ingrese la función f(x)"
       "\nNota: la variable debe de ser x y estar"
       "\nen notación de Python"
-      "\ne.g. g(x) = x**2 + 2*x + 1"
-      "\n     g(x) = math.e(-x)"
+      "\ne.g. f(x) = x**2 + 2*x + 1"
+      "\n     f(x) = math.e**(-x) - x"
     )
-    s = input("g_(x) = ")
+    s = input("f(x) = ")
     # la lambda encapsula el valor de x dentro de su scope
     fn = lambda x: eval(s)
     # la función tiene que aceptar un valor flotante
