@@ -5,10 +5,9 @@ import math
 def main():
     fn = parsefn()
     if type(fn) == str: return print(f'ERROR: {fn}')
+    x = float(input("x_0: "))
     e = float(input("% de error: "))
-    # TODO: Puede que se quiera proveer la x inicial
-    # en ese caso hay que añadir otro input
-    r = pfijo(0, e, fn)
+    r = pfijo(x, e, fn)
     print("Raiz encontrada:", r)
     print(f"f({r}) =", fn(r))
 
@@ -33,7 +32,7 @@ def parsefn() -> Callable[[float], float] | str:
       "Ingrese la función f(x)"
       "\nNota: la variable debe de ser x y estar"
       "\nen notación de Python"
-      "\ne.g. f(x) = x**2 + 2*x + 1"
+      "\ne.g. f(x) = x**2 - 2*x + 1"
       "\n     f(x) = math.e**(-x) - x"
     )
     s = input("f(x) = ")
