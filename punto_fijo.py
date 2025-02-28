@@ -2,26 +2,37 @@ from typing import Callable
 # importamos math para usarlo dentro de eval()
 import math
 
+class DivergenceException(Exception): pass
+
 def main():
     fn = parsefn()
     if type(fn) == str: return print(f'ERROR: {fn}')
     x = float(input("x_0: "))
     e = float(input("% de error: "))
-    r = pfijo(x, e, fn)
-    print("Raiz encontrada:", r)
-    print(f"f({r}) =", fn(r))
+    try:
+        r = pfijo(x, e, fn)
+        print("Raiz encontrada:", r)
+        print(f"f({r:.4f}) =", fn(r))
+    except DivergenceException:
+        print("El algoritmo diverge con la función y el valor inicial dado")
 
 def pfijo(x: float, e: float, fn: Callable[[float], float]):
     i = 0
-    curr = x
+    curr = fn(x) + x
+    cerr = math.inf
+    print(f"0: x = {curr:.4f} err = inf")
     while True:
-        prev = curr
-        # el + x viene del despeje f(x) + x - x = 0
-        curr = fn(prev) + prev
-        print(curr, err(prev, curr))
-        # TODO: Si en algún momento e_{i+1} >= e_i
-        # el algoritmo diverge y la función no tiene punto fijo
-        if err(prev, curr) <= e:
+        i += 1
+        prev = curr # x_i
+        curr = fn(prev) + prev # x_{i+1} -> fn(x_i) + x_i
+        perr = cerr
+        cerr = err(prev, curr)
+        print(f"{i}: x = {curr:.4f} err = {cerr:.4f}")
+        # Si en algún momento e_{i+1} >= e_i el algoritmo
+        # diverge con f(x) y x_0
+        if cerr >= perr:
+            raise DivergenceException()
+        if cerr <= e:
             return curr
 
 def err(prev: float, curr: float) -> float:
