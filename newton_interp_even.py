@@ -47,7 +47,7 @@ def mkNewtonBasis(xs: list[float]):
 # Dado un conjunto de puntos
 #   (x₀, y₀), (x₁, y₁), ..., (xₙ, yₙ), (xₙ₊₁, yₙ₊₁)
 # El polinomio de Newton esta dado por la formula:
-#   Pₙ(x) = Σⁿᵢ₌₀  Δᵏyᵢ * nⱼ(x) / (i! * hᶦ)
+#   Pₙ(x) = Σⁿᵢ₌₀  Δᵏyᵢ * nⱼ(x) / (i! * hⁱ)
 # donde n ≥ 1
 #       n ∈ ℕ
 def mkNewtonPolynomial(xs: list[float], ys: list[float]):
